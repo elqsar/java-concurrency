@@ -1,0 +1,10 @@
+/build
+/code
+.classpath
+.project
+.settings
+bin
+build
+target
+.gradle
+MANIFEST.MF
