@@ -129,8 +129,8 @@ public class First {
 			resource.start();
 			network.start();
 			try {
-				resource.join();
-				network.join();
+				resource.join(); // wait resource to finish than continue
+				network.join(); // wait network to finish than continue
 			} catch(InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -139,6 +139,12 @@ public class First {
 		case SIXTH:
 			System.out.println(code.getDescription());
 			Thread error = new Thread(new ErrorTask());
+			/**
+			 * The way JVM looking for exception handlers for uncaught exceptions:
+			 * 1. UncaughtExceptionHandler of the Thread
+			 * 2. UncaughtExceptionHandler of the ThreadGroup
+			 * 3. DefaultExceptionHandler - this one is valid for all application
+			 */
 			Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
 				
 				@Override
