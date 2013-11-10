@@ -6,7 +6,7 @@ import java.util.Deque;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Daemon thread.
+ * Daemon thread example.
  * 
  */
 public class Daemon {
