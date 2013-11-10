@@ -7,9 +7,13 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class Conditions {
 
+	private static final int BUFFER_SIZE = 20;
+	private static final int MOCK_LENGTH = 10;
+	private static final int MOCK_SIZE = 100;
+
 	public static void main(String[] args) {
-		FileMock mock = new FileMock(100, 10);
-		Buffer buffer = new Buffer(20);
+		FileMock mock = new FileMock(MOCK_SIZE, MOCK_LENGTH);
+		Buffer buffer = new Buffer(BUFFER_SIZE);
 		Producer producer = new Producer(mock, buffer);
 		Thread prodThread = new Thread(producer, "*** Producer Thread ***");
 		Consumer[] consumers = new Consumer[3];
