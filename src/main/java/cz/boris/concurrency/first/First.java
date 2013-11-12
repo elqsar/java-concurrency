@@ -9,13 +9,9 @@ import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-import cz.boris.concurrency.first.First.PrimeGenerator.FileSearch;
-import cz.boris.concurrency.first.First.PrimeGenerator.NetworkResourceLoader;
-import cz.boris.concurrency.first.First.PrimeGenerator.ResourceLoader;
-
 /**
  * Simple Threading.
- *
+ * 
  */
 public class First {
 
@@ -131,27 +127,29 @@ public class First {
 			try {
 				resource.join(); // wait resource to finish than continue
 				network.join(); // wait network to finish than continue
-			} catch(InterruptedException e) {
+			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			System.out.printf("Configuration has been loaded: %s\n", new Date());
+			System.out
+					.printf("Configuration has been loaded: %s\n", new Date());
 			break;
 		case SIXTH:
 			System.out.println(code.getDescription());
 			Thread error = new Thread(new ErrorTask());
 			/**
-			 * The way JVM looking for exception handlers for uncaught exceptions:
-			 * 1. UncaughtExceptionHandler of the Thread
-			 * 2. UncaughtExceptionHandler of the ThreadGroup
-			 * 3. DefaultExceptionHandler - this one is valid for all application
+			 * The way JVM looking for exception handlers for uncaught
+			 * exceptions: 1. UncaughtExceptionHandler of the Thread 2.
+			 * UncaughtExceptionHandler of the ThreadGroup 3.
+			 * DefaultExceptionHandler - this one is valid for all application
 			 */
 			Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
-				
+
 				@Override
 				public void uncaughtException(Thread t, Throwable e) {
 					System.out.println("Exception is occured.");
 					System.out.printf("Thread %s\n", t.getId());
-					System.out.printf("Exception info: %s %s", e.getClass().getName(), e.getMessage());
+					System.out.printf("Exception info: %s %s", e.getClass()
+							.getName(), e.getMessage());
 				}
 			});
 			error.start();
@@ -169,14 +167,14 @@ public class First {
 		pw.printf("Main : New State: %s\n", thread.getState());
 		pw.printf("Main : ************************************\n");
 	}
-	
+
 	static class ErrorTask implements Runnable {
 
 		@Override
 		public void run() {
 			Integer.parseInt("AAA");
 		}
-		
+
 	}
 
 	static class Calculator implements Runnable {
@@ -192,6 +190,75 @@ public class First {
 				System.out.printf("%s: %d * %d = %d\n", Thread.currentThread()
 						.getName(), number, i, i * number);
 			}
+		}
+
+	}
+
+	static class FileSearch implements Runnable {
+
+		private final String rootPath;
+		private final String fileName;
+
+		public FileSearch(String rootPath, String fileName) {
+			this.rootPath = rootPath;
+			this.fileName = fileName;
+		}
+
+		@Override
+		public void run() {
+			File file = new File(rootPath);
+			if (file.isDirectory()) {
+				try {
+					processDirectory(file);
+				} catch (InterruptedException e) {
+					System.out.printf("%s: The search has been interrupted.",
+							Thread.currentThread().getName());
+				}
+			}
+		}
+
+		private void processDirectory(File file) throws InterruptedException {
+			File[] list = file.listFiles();
+			if (list != null) {
+				for (int i = 0; i < list.length; i++) {
+					if (list[i].isDirectory()) {
+						processDirectory(list[i]);
+					} else {
+						processFile(list[i]);
+					}
+				}
+			}
+			if (Thread.interrupted()) {
+				throw new InterruptedException();
+			}
+		}
+
+		private void processFile(File file) throws InterruptedException {
+			if (file.getName().equals(fileName)) {
+				System.out.printf("%s : %s\n",
+						Thread.currentThread().getName(),
+						file.getAbsolutePath());
+			}
+			if (Thread.interrupted()) {
+				throw new InterruptedException();
+			}
+		}
+
+	}
+
+	static class ResourceLoader implements Runnable {
+
+		@Override
+		public void run() {
+			System.out.printf("%s ***** Beginning loading: %s\n", Thread
+					.currentThread().getName(), new Date());
+			try {
+				TimeUnit.SECONDS.sleep(5);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			System.out.printf("%s ***** End loading: %s\n", Thread
+					.currentThread().getName(), new Date());
 		}
 
 	}
@@ -213,85 +280,6 @@ public class First {
 			}
 		}
 
-		static class FileSearch implements Runnable {
-
-			private final String rootPath;
-			private final String fileName;
-
-			public FileSearch(String rootPath, String fileName) {
-				this.rootPath = rootPath;
-				this.fileName = fileName;
-			}
-
-			@Override
-			public void run() {
-				File file = new File(rootPath);
-				if(file.isDirectory()) {
-					try {
-						processDirectory(file);
-					} catch(InterruptedException e) {
-						System.out.printf("%s: The search has been interrupted.", Thread.currentThread().getName());
-					}
-				}
-			}
-
-			private void processDirectory(File file) throws InterruptedException {
-				File[] list = file.listFiles();
-				if(list != null) {
-					for(int i = 0; i < list.length; i++) {
-						if(list[i].isDirectory()) {
-							processDirectory(list[i]);
-						} else {
-							processFile(list[i]);
-						}
-					}
-				}
-				if(Thread.interrupted()) {
-					throw new InterruptedException();
-				}
-			}
-
-			private void processFile(File file) throws InterruptedException {
-				if(file.getName().equals(fileName)) {
-					System.out.printf("%s : %s\n", Thread.currentThread().getName(), file.getAbsolutePath());
-				}
-				if(Thread.interrupted()) {
-					throw new InterruptedException();
-				}
-			}
-
-		}
-		
-		static class ResourceLoader implements Runnable {
-
-			@Override
-			public void run() {
-				System.out.printf("%s ***** Beginning loading: %s\n", Thread.currentThread().getName(), new Date());
-				try {
-					TimeUnit.SECONDS.sleep(5);
-				} catch(InterruptedException e) {
-					e.printStackTrace();
-				}
-				System.out.printf("%s ***** End loading: %s\n", Thread.currentThread().getName(), new Date());
-			}
-			
-		}
-		
-		static class NetworkResourceLoader implements Runnable {
-
-			@Override
-			public void run() {
-				System.out.printf("%s ***** Beginning loading: %s\n",Thread.currentThread().getName(), new Date());
-				try {
-					TimeUnit.SECONDS.sleep(7);
-				} catch(InterruptedException e) {
-					e.printStackTrace();
-				}
-				System.out.printf("%s ***** End loading: %s\n",Thread.currentThread().getName(), new Date());
-			}
-			
-		}
-
 		private boolean isPrime(long number) {
 			if (number <= 2) {
 				return true;
@@ -302,6 +290,23 @@ public class First {
 				}
 			}
 			return true;
+		}
+
+	}
+
+	static class NetworkResourceLoader implements Runnable {
+
+		@Override
+		public void run() {
+			System.out.printf("%s ***** Beginning loading: %s\n", Thread
+					.currentThread().getName(), new Date());
+			try {
+				TimeUnit.SECONDS.sleep(7);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			System.out.printf("%s ***** End loading: %s\n", Thread
+					.currentThread().getName(), new Date());
 		}
 
 	}
